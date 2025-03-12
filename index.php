@@ -9,33 +9,8 @@ require_once 'config.php';
     <title>PHP RESTful API CRUD</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            background: linear-gradient(to right, #6a11cb, #2575fc);
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            max-width: 800px;
-            background: white;
-            color: black;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        .btn-primary {
-            background-color: #6a11cb;
-            border: none;
-        }
-        .btn-danger {
-            background-color: #ff4d4d;
-            border: none;
-        }
-        .table th {
-            background: #2575fc;
-            color: white;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
 <body>
     <div class="container mt-5">
@@ -64,9 +39,9 @@ require_once 'config.php';
                         <th>Actions</th>
                     </tr>
                 </thead>
-                    <tbody>
+                <tbody>
                     <?php
-                    $users = fetchUsers(); // Call the function and store the results
+                    $users = fetchUsers();
                     if (!empty($users)) {
                         foreach ($users as $user) {
                             echo "<tr>
@@ -74,14 +49,43 @@ require_once 'config.php';
                                     <td>{$user['name']}</td>
                                     <td>{$user['email']}</td>
                                     <td>
-                                        <form method='POST' action='config.php'>
+                                        <form method='POST' action='config.php' style='display:inline-block;'>
                                             <input type='hidden' name='delete_id' value='{$user['id']}'>
                                             <button type='submit' class='btn btn-danger btn-sm'>
                                                 <i class='fas fa-trash-alt'></i> Delete
                                             </button>
                                         </form>
+                                        <button class='btn btn-warning btn-sm' data-bs-toggle='modal' data-bs-target='#editModal{$user['id']}'>
+                                            <i class='fas fa-edit'></i> Edit
+                                        </button>
                                     </td>
                                 </tr>";
+
+                            // Edit Modal for each user
+                            echo "<div class='modal fade' id='editModal{$user['id']}' tabindex='-1' aria-labelledby='editModalLabel' aria-hidden='true'>
+                                    <div class='modal-dialog'>
+                                        <div class='modal-content'>
+                                            <div class='modal-header'>
+                                                <h5 class='modal-title' id='editModalLabel'>Edit User</h5>
+                                                <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+                                            </div>
+                                            <div class='modal-body'>
+                                                <form method='POST' action='config.php'>
+                                                    <input type='hidden' name='update_id' value='{$user['id']}'>
+                                                    <div class='mb-3'>
+                                                        <label for='name' class='form-label'>Name</label>
+                                                        <input type='text' class='form-control' name='name' value='{$user['name']}' required>
+                                                    </div>
+                                                    <div class='mb-3'>
+                                                        <label for='email' class='form-label'>Email</label>
+                                                        <input type='email' class='form-control' name='email' value='{$user['email']}' required>
+                                                    </div>
+                                                    <button type='submit' class='btn btn-primary w-100'>Update User</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>";
                         }
                     } else {
                         echo "<tr><td colspan='4' class='text-center'>No users found</td></tr>";
@@ -95,7 +99,7 @@ require_once 'config.php';
     <script>
         $(document).ready(function() {
             $("#userForm").submit(function(event) {
-                event.preventDefault(); // Prevent default form submission
+                event.preventDefault();
 
                 let name = $("#name").val();
                 let email = $("#email").val();
@@ -103,18 +107,25 @@ require_once 'config.php';
                 $.ajax({
                     url: "config.php",
                     type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ name: name, email: email }),
+                    data: { name: name, email: email }, // Send as regular form data
                     success: function(response) {
-                        alert(response.message);
-                        location.reload(); // Reload page to update user list
+                        try {
+                            let res = JSON.parse(response); // Ensure valid JSON response
+                            alert(res.message); // Show success message
+                            location.reload(); // Reload page to update user list
+                        } catch (e) {
+                            console.log("Invalid JSON response:", response);
+                            alert("An error occurred, please check the server response.");
+                        }
                     },
                     error: function(xhr, status, error) {
                         console.log("Error:", error);
+                        alert("Something went wrong!");
                     }
                 });
             });
         });
+
 
         function deleteUser(id) {
             if (confirm("Are you sure you want to delete this user?")) {

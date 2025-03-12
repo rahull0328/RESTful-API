@@ -8,10 +8,17 @@ if ($conn->connect_error) {
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-if ($method == "POST" && isset($_POST['name']) && isset($_POST['email'])) {
-    addUser($_POST['name'], $_POST['email']);
-} elseif ($method == "POST" && isset($_POST['delete_id'])) {
-    deleteUser($_POST['delete_id']);
+if ($method == "POST") {
+    if (isset($_POST['name']) && isset($_POST['email']) && !isset($_POST['update_id'])) 
+    {
+        addUser($_POST['name'], $_POST['email']);
+    } elseif (isset($_POST['update_id']) && isset($_POST['name']) && isset($_POST['email'])) 
+    {
+        updateUser($_POST['update_id'], $_POST['name'], $_POST['email']);
+    } elseif (isset($_POST['delete_id'])) 
+    {
+        deleteUser($_POST['delete_id']);
+    }
 }
 
 function fetchUsers()
@@ -24,7 +31,7 @@ function fetchUsers()
         $users[] = $row;
     }
 
-    return $users; // Return as an array instead of echoing JSON
+    return $users; // Return array
 }
 
 function addUser($name, $email)
@@ -34,10 +41,26 @@ function addUser($name, $email)
     $stmt->bind_param("ss", $name, $email);
 
     if ($stmt->execute()) {
+        echo json_encode(["status" => "success", "message" => "User added successfully"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Error adding user"]);
+    }
+    $stmt->close();
+    exit(); // Ensure no extra HTML is returned
+}
+
+
+function updateUser($id, $name, $email)
+{
+    global $conn;
+    $stmt = $conn->prepare("UPDATE users SET name = ?, email = ? WHERE id = ?");
+    $stmt->bind_param("ssi", $name, $email, $id);
+
+    if ($stmt->execute()) {
         header("Location: index.php");
         exit();
     } else {
-        echo "Error adding user";
+        echo "Error updating user";
     }
     $stmt->close();
 }
