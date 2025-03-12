@@ -1,0 +1,25 @@
+body {
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    color: white;
+    font-family: Arial, sans-serif;
+}
+.container {
+    max-width: 800px;
+    background: white;
+    color: black;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+.btn-primary {
+    background-color: #6a11cb;
+    border: none;
+}
+.btn-danger {
+    background-color: #ff4d4d;
+    border: none;
+}
+.table th {
+    background: #2575fc;
+    color: white;
+}
