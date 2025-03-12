@@ -1,63 +1,59 @@
 <?php
-ob_clean();
-header('Content-Type: application/json; charset=utf-8');
-ini_set('display_errors', 1); // Disable error display
-ini_set('log_errors', 1); // Log errors instead
-error_reporting(E_ALL);
 
-class db
-{
-    public $con;
+$conn = new mysqli("localhost", "root", "", "test");
 
-    function __construct()
-    {
-        $dsn = "mysql:host=localhost;dbname=test";
-        $uname = "root";
-        $pwd = "";
-
-        try {
-            $this->con = new PDO($dsn, $uname, $pwd);
-            $this->con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->routeRequest();
-        } catch (PDOException $e) {
-            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
-            exit;
-        }
-    }
-
-    private function routeRequest()
-    {
-        $pathInfo = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/';
-        $path = explode('/', trim($pathInfo, '/'));
-
-        $method = $_SERVER['REQUEST_METHOD'];
-        if ($path[0] == 'phpdemo') {
-            switch ($method) {
-                case 'GET':
-                    $this->getAllUsers();
-                    break;
-                default:
-                    echo json_encode(["status" => "error", "message" => "Invalid request method"]);
-            }
-        } else {
-            echo json_encode(["status" => "error", "message" => "Invalid route"]);
-        }
-    }
-
-    function getAllUsers()
-    {
-        try {
-            $query = "SELECT * FROM phpdemo";
-            $stmt = $this->con->prepare($query);
-            $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Return only JSON response
-            echo json_encode(["status" => "success", "data" => $result]);
-        } catch (PDOException $e) {
-            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
-        }
-    }
+if ($conn->connect_error) {
+    die(json_encode(["error" => "Database connection failed"]));
 }
 
-new db();
+$method = $_SERVER['REQUEST_METHOD'];
+
+if ($method == "POST" && isset($_POST['name']) && isset($_POST['email'])) {
+    addUser($_POST['name'], $_POST['email']);
+} elseif ($method == "POST" && isset($_POST['delete_id'])) {
+    deleteUser($_POST['delete_id']);
+}
+
+function fetchUsers()
+{
+    global $conn;
+    $result = $conn->query("SELECT * FROM users");
+    $users = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $users[] = $row;
+    }
+
+    return $users; // Return as an array instead of echoing JSON
+}
+
+function addUser($name, $email)
+{
+    global $conn;
+    $stmt = $conn->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
+    $stmt->bind_param("ss", $name, $email);
+
+    if ($stmt->execute()) {
+        header("Location: index.php");
+        exit();
+    } else {
+        echo "Error adding user";
+    }
+    $stmt->close();
+}
+
+function deleteUser($id)
+{
+    global $conn;
+    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        header("Location: index.php");
+        exit();
+    } else {
+        echo "Error deleting user";
+    }
+    $stmt->close();
+}
+?>
