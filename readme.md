@@ -4,6 +4,8 @@ This project is a simple RESTful API-based CRUD application using PHP and MySQL.
 
 <img src="./assets/images/banner.png" alt="project_banner" />
 
+---
+
 ## 🚀 Features
 
 - **Create** new users with name and email.
@@ -12,6 +14,8 @@ This project is a simple RESTful API-based CRUD application using PHP and MySQL.
 - **Delete** users with confirmation.
 - **RESTful API** to handle CRUD operations.
 - **Bootstrap UI** for a modern and responsive design.
+
+---
 
 ## 🛠️ Setup Instructions
 
@@ -40,6 +44,8 @@ Run the project in your browser:
 ```bash
 http://localhost/RESTful-API/index.php
 ```
+
+---
 
 ## 🎨 Technologies Used
 - PHP (Backend)
